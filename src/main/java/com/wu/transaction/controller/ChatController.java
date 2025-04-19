@@ -41,9 +41,7 @@ public class ChatController {
             // 有附件，多模态聊天
             return multiModalChat(prompt, chatId, files);
         }
-
     }
-
 
     private Flux<String> multiModalChat(String prompt, String chatId, List<MultipartFile> files) {
         // 1.解析多媒体

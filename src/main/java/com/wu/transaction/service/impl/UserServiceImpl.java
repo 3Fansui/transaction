@@ -1,9 +1,9 @@
 package com.wu.transaction.service.impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wu.transaction.entity.po.User;
 import com.wu.transaction.mapper.UserMapper;
 import com.wu.transaction.service.IUserService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
 /**
@@ -16,5 +16,5 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
-
-}
+    
+} 

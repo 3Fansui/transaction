@@ -17,36 +17,58 @@ import org.springframework.ai.chat.observation.ChatModelObservationConvention;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.model.SimpleApiKey;
 import org.springframework.ai.model.tool.ToolCallingManager;
+import org.springframework.ai.openai.OpenAiEmbeddingModel;
 import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.ai.vectorstore.SimpleVectorStore;
+import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.redis.RedisVectorStore;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.client.WebClient;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
 import static com.wu.transaction.constants.SystemConstants.SECONDHAND_PLATFORM_SYSTEM;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import redis.clients.jedis.JedisPooled;
 
 @Configuration
 public class CommonConfiguration {
 
+    @Value("${spring.data.redis.host}")
+    private String redisHost;
+
+    @Value("${spring.data.redis.port}")
+    private int redisPort;
+
+    @Value("${spring.ai.vectorstore.redis.index:spring_ai_index}")
+    private String vectorStoreIndex;
+
+    @Value("${spring.ai.vectorstore.redis.prefix:doc:}")
+    private String vectorStorePrefix;
+
     @Bean
-    public ObjectMapper objectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        return objectMapper;
+    public JedisPooled jedisPooled() {
+        return new JedisPooled(redisHost, redisPort);
+    }
+
+    @Bean
+    public VectorStore vectorStore(JedisPooled jedisPooled, OpenAiEmbeddingModel embeddingModel) {
+        return RedisVectorStore.builder(jedisPooled, embeddingModel)
+                .indexName(vectorStoreIndex)       // 设置向量索引名
+                .prefix(vectorStorePrefix)     // 设置键前缀
+                .initializeSchema(true)        // 初始化Redis向量索引
+                .build();
     }
 
     @Bean

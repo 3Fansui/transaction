@@ -4,30 +4,43 @@ spring:
   # Redis配置
   data:
     redis:
-      host: localhost
+      host: 117.72.95.17
       port: 6379
-      # 如有必要可以配置密码
-      # password: yourpassword
-      database: 1
-      timeout: 10000
-      lettuce:
-        pool:
-          max-active: 8
-          max-wait: -1
-          max-idle: 8
-          min-idle: 0
   ai:
     openai:
       base-url: https://dashscope.aliyuncs.com/compatible-mode
-      api-key: sk-c0cfcd0b9c5843b8b717d976f273f854
+      api-key: sk-c0cfcd0b9c5843b8b717d976f273f854  # OPENAI_API_KEY=sk-c0cfcd0b9c5843b8b717d976f273f854
       chat:
         options:
           model: qwen-max-latest
+      embedding:
+        options:
+          model: text-embedding-v3
+          dimensions: 1024
+      vectorstore:
+        redis:
+          index: spring_ai_index # 向量库索引名
+          initialize-schema: true # 是否初始化向量库索引结构
+          prefix: "doc:" # 向量库key前缀
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/buy?serverTimezone=Asia/Shanghai&useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&tinyInt1isBit=false&allowPublicKeyRetrieval=true&allowMultiQueries=true&useServerPrepStmts=false
     username: root
     password: 123456
+  # 配置上传文件大小限制
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+# MinIO配置
+minio:
+  endpoint: http://117.72.95.17:9005
+  accessKey: minioadmin  
+  secretKey: minioadmin
+  bucket: 
+    product-images: product-images  # 商品图片存储桶
+    user-avatars: user-avatars      # 用户头像存储桶
 
 springdoc:
   swagger-ui:
@@ -37,3 +50,9 @@ logging:
   level:
     org.springframework.ai: debug
     com.wu.transaction: debug
+# JWT配置
+jwt:
+  secret: ZCprPyacfQyXXU7NiJSJlUebCGYVXeWmJkNhDsYsQXahBWVtkBuQcMHpMeOhyA6
+  expiration: 86400000  # 24小时
+  header: Authorization
+  tokenPrefix: "Bearer "

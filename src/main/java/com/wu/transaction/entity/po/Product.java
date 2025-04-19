@@ -55,7 +55,7 @@ public class Product implements Serializable {
 
     @Schema(description = "商品状态：草稿、在售、已售、已下架")
     private String status;
-
+    
     @Schema(description = "创建时间")
     private LocalDateTime createdAt;
 

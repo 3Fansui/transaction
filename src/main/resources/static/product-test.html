@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品管理测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1, h2 {
+            color: #444;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.delete {
+            background-color: #f44336;
+        }
+        button.delete:hover {
+            background-color: #d32f2f;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .product-image {
+            max-width: 80px;
+            max-height: 80px;
+            object-fit: contain;
+            border: 1px solid #ddd;
+            padding: 2px;
+            background-color: #fff;
+            display: block;
+            margin: 0 auto;
+        }
+        .preview-image {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 10px;
+            display: none;
+            object-fit: contain;
+            border: 1px solid #ddd;
+            padding: 5px;
+            background-color: #fff;
+        }
+        .success {
+            color: green;
+            margin-top: 10px;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>商品管理测试页面</h1>
+        
+        <!-- 查询商品列表 -->
+        <div class="section">
+            <h2>商品列表</h2>
+            <div class="form-group">
+                <label>标题搜索：</label>
+                <input type="text" id="searchTitle" placeholder="输入商品标题">
+            </div>
+            <button id="btnSearch">搜索</button>
+            <button id="btnReset">重置</button>
+            <div style="margin-top: 20px;">
+                <table id="productTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>图片</th>
+                            <th>标题</th>
+                            <th>价格</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 商品列表数据 -->
+                    </tbody>
+                </table>
+                <div style="margin-top: 10px;">
+                    <button id="btnPrev">上一页</button>
+                    <span id="pageInfo">第 1 页</span>
+                    <button id="btnNext">下一页</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 添加商品 -->
+        <div class="section">
+            <h2>添加商品</h2>
+            <div class="form-group">
+                <label>商品标题：</label>
+                <input type="text" id="addTitle" placeholder="输入商品标题">
+            </div>
+            <div class="form-group">
+                <label>商品描述：</label>
+                <textarea id="addDescription" rows="3" placeholder="输入商品描述"></textarea>
+            </div>
+            <div class="form-group">
+                <label>商品价格：</label>
+                <input type="number" id="addPrice" step="0.01" placeholder="输入商品价格">
+            </div>
+            <div class="form-group">
+                <label>商品分类：</label>
+                <select id="addCategorySelect" multiple class="form-control">
+                    <!-- 分类选项将通过JavaScript动态加载 -->
+                </select>
+                <small>按住Ctrl键可选择多个分类</small>
+            </div>
+            <div class="form-group">
+                <label>卖家ID：</label>
+                <input type="number" id="addSellerId" placeholder="输入卖家ID">
+            </div>
+            <div class="form-group">
+                <label>商品状态：</label>
+                <select id="addStatus">
+                    <option value="草稿">草稿</option>
+                    <option value="在售">在售</option>
+                    <option value="已售">已售</option>
+                    <option value="已下架">已下架</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>商品图片：</label>
+                <input type="file" id="addImage" accept="image/*">
+                <img id="addImagePreview" class="preview-image" src="" alt="预览图">
+            </div>
+            <button id="btnUploadImage">上传图片</button>
+            <button id="btnAdd">添加商品</button>
+            <div id="addResult"></div>
+        </div>
+        
+        <!-- 更新商品 -->
+        <div class="section">
+            <h2>更新商品</h2>
+            <div class="form-group">
+                <label>商品ID：</label>
+                <input type="number" id="updateId" placeholder="输入商品ID">
+                <button id="btnGetProduct" style="width: auto; margin-top: 10px;">获取商品信息</button>
+            </div>
+            <div class="form-group">
+                <label>商品标题：</label>
+                <input type="text" id="updateTitle" placeholder="输入商品标题">
+            </div>
+            <div class="form-group">
+                <label>商品描述：</label>
+                <textarea id="updateDescription" rows="3" placeholder="输入商品描述"></textarea>
+            </div>
+            <div class="form-group">
+                <label>商品价格：</label>
+                <input type="number" id="updatePrice" step="0.01" placeholder="输入商品价格">
+            </div>
+            <div class="form-group">
+                <label>商品分类：</label>
+                <select id="updateCategorySelect" multiple class="form-control">
+                    <!-- 分类选项将通过JavaScript动态加载 -->
+                </select>
+                <small>按住Ctrl键可选择多个分类</small>
+            </div>
+            <div class="form-group">
+                <label>卖家ID：</label>
+                <input type="number" id="updateSellerId" placeholder="输入卖家ID">
+            </div>
+            <div class="form-group">
+                <label>商品状态：</label>
+                <select id="updateStatus">
+                    <option value="草稿">草稿</option>
+                    <option value="在售">在售</option>
+                    <option value="已售">已售</option>
+                    <option value="已下架">已下架</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>当前图片：</label>
+                <img id="currentImage" class="preview-image" src="" alt="当前图片">
+                <div id="currentImagePath"></div>
+            </div>
+            <div class="form-group">
+                <label>更新图片：</label>
+                <input type="file" id="updateImage" accept="image/*">
+                <img id="updateImagePreview" class="preview-image" src="" alt="预览图">
+            </div>
+            <button id="btnUploadUpdateImage">上传新图片</button>
+            <button id="btnUpdate">更新商品</button>
+            <div id="updateResult"></div>
+        </div>
+        
+        <!-- 删除商品 -->
+        <div class="section">
+            <h2>删除商品</h2>
+            <div class="form-group">
+                <label>商品ID：</label>
+                <input type="number" id="deleteId" placeholder="输入要删除的商品ID">
+            </div>
+            <button id="btnDelete" class="delete">删除商品</button>
+            <div id="deleteResult"></div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentPage = 1;
+        let pageSize = 10;
+        let totalPages = 1;
+        let uploadedImagePath = null;
+        let updateImagePath = null;
+        let categories = [];
+        let selectedCategories = [];
+        let updateSelectedCategories = [];
+        
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始加载商品列表
+            loadProducts();
+            
+            // 加载分类列表
+            loadCategories();
+            
+            // 监听分类选择的变化
+            document.getElementById('addCategorySelect').addEventListener('change', function(e) {
+                selectedCategories = Array.from(e.target.selectedOptions).map(option => parseInt(option.value));
+            });
+            
+            document.getElementById('updateCategorySelect').addEventListener('change', function(e) {
+                updateSelectedCategories = Array.from(e.target.selectedOptions).map(option => parseInt(option.value));
+            });
+            
+            // 绑定搜索按钮事件
+            document.getElementById('btnSearch').addEventListener('click', function() {
+                currentPage = 1;
+                loadProducts();
+            });
+            
+            // 绑定重置按钮事件
+            document.getElementById('btnReset').addEventListener('click', function() {
+                document.getElementById('searchTitle').value = '';
+                currentPage = 1;
+                loadProducts();
+            });
+            
+            // 绑定分页按钮事件
+            document.getElementById('btnPrev').addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    loadProducts();
+                }
+            });
+            
+            document.getElementById('btnNext').addEventListener('click', function() {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    loadProducts();
+                }
+            });
+            
+            // 图片预览
+            document.getElementById('addImage').addEventListener('change', function(e) {
+                previewImage(e.target, document.getElementById('addImagePreview'));
+            });
+            
+            document.getElementById('updateImage').addEventListener('change', function(e) {
+                previewImage(e.target, document.getElementById('updateImagePreview'));
+            });
+            
+            // 上传图片按钮
+            document.getElementById('btnUploadImage').addEventListener('click', function() {
+                uploadImage(
+                    document.getElementById('addImage'), 
+                    function(path) {
+                        uploadedImagePath = path;
+                        document.getElementById('addResult').innerHTML = '<div class="success">图片上传成功！</div>';
+                    }
+                );
+            });
+            
+            document.getElementById('btnUploadUpdateImage').addEventListener('click', function() {
+                uploadImage(
+                    document.getElementById('updateImage'), 
+                    function(path) {
+                        updateImagePath = path;
+                        document.getElementById('updateResult').innerHTML = '<div class="success">图片上传成功！</div>';
+                    }
+                );
+            });
+            
+            // 添加商品按钮
+            document.getElementById('btnAdd').addEventListener('click', addProduct);
+            
+            // 获取商品信息按钮
+            document.getElementById('btnGetProduct').addEventListener('click', getProductForUpdate);
+            
+            // 更新商品按钮
+            document.getElementById('btnUpdate').addEventListener('click', updateProduct);
+            
+            // 删除商品按钮
+            document.getElementById('btnDelete').addEventListener('click', deleteProduct);
+        });
+        
+        // 加载商品列表
+        function loadProducts() {
+            const title = document.getElementById('searchTitle').value;
+            let url = `/api/products?pageNum=${currentPage}&pageSize=${pageSize}`;
+            
+            if (title) {
+                url += `&title=${encodeURIComponent(title)}`;
+            }
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    // 更新分页信息
+                    totalPages = Math.ceil(data.total / pageSize);
+                    document.getElementById('pageInfo').textContent = `第 ${currentPage} 页，共 ${totalPages} 页`;
+                    
+                    // 更新表格数据
+                    const tbody = document.getElementById('productTable').getElementsByTagName('tbody')[0];
+                    tbody.innerHTML = '';
+                    
+                    if (data.records && data.records.length > 0) {
+                        data.records.forEach(product => {
+                            const row = tbody.insertRow();
+                            
+                            // ID列
+                            row.insertCell(0).textContent = product.productId;
+                            
+                            // 图片列
+                            const imgCell = row.insertCell(1);
+                            if (product.pic) {
+                                const img = document.createElement('img');
+                                img.alt = product.title;
+                                img.className = 'product-image';
+                                img.onerror = function() {
+                                    imgCell.textContent = '图片加载失败';
+                                    console.error('无法加载图片:', product.pic);
+                                };
+                                imgCell.appendChild(img);
+                                
+                                // 先获取图片URL
+                                fetch(`/api/products/image-info?path=${encodeURIComponent(product.pic)}&t=${new Date().getTime()}`)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.url) {
+                                            img.src = data.url;
+                                        } else {
+                                            imgCell.textContent = '图片URL获取失败';
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('获取图片URL出错:', error);
+                                        imgCell.textContent = '图片加载错误';
+                                    });
+                            } else {
+                                imgCell.textContent = '无图片';
+                            }
+                            
+                            // 标题列
+                            row.insertCell(2).textContent = product.title;
+                            
+                            // 价格列
+                            row.insertCell(3).textContent = product.price;
+                            
+                            // 状态列
+                            row.insertCell(4).textContent = product.status;
+                            
+                            // 操作列
+                            const actionsCell = row.insertCell(5);
+                            
+                            // 查看按钮
+                            const viewBtn = document.createElement('button');
+                            viewBtn.textContent = '查看';
+                            viewBtn.onclick = function() {
+                                location.href = `#updateId`;
+                                document.getElementById('updateId').value = product.productId;
+                                getProductForUpdate();
+                            };
+                            actionsCell.appendChild(viewBtn);
+                            
+                            // 删除按钮
+                            const deleteBtn = document.createElement('button');
+                            deleteBtn.textContent = '删除';
+                            deleteBtn.className = 'delete';
+                            deleteBtn.onclick = function() {
+                                if (confirm(`确定要删除 "${product.title}" 吗？`)) {
+                                    deleteProductById(product.productId);
+                                }
+                            };
+                            actionsCell.appendChild(deleteBtn);
+                        });
+                    } else {
+                        const row = tbody.insertRow();
+                        const cell = row.insertCell(0);
+                        cell.colSpan = 6;
+                        cell.textContent = '没有找到商品数据';
+                        cell.style.textAlign = 'center';
+                    }
+                })
+                .catch(error => {
+                    console.error('获取商品列表出错:', error);
+                    alert('获取商品列表失败，请查看控制台错误信息');
+                });
+        }
+        
+        // 预览图片
+        function previewImage(input, imgElement) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imgElement.src = e.target.result;
+                    imgElement.style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        // 上传图片
+        function uploadImage(fileInput, callback) {
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('请先选择图片文件');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            fetch('/api/products/upload-image', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.path) {
+                    callback(data.path);
+                } else {
+                    alert('上传图片失败，未获取到图片路径');
+                }
+            })
+            .catch(error => {
+                console.error('上传图片出错:', error);
+                alert('上传图片失败，请查看控制台错误信息');
+            });
+        }
+        
+        // 添加商品
+        function addProduct() {
+            const title = document.getElementById('addTitle').value;
+            const description = document.getElementById('addDescription').value;
+            const price = document.getElementById('addPrice').value;
+            const sellerId = document.getElementById('addSellerId').value;
+            const status = document.getElementById('addStatus').value;
+            
+            if (!title || !price || selectedCategories.length === 0 || !sellerId) {
+                alert('请填写商品标题、价格、选择至少一个分类并填写卖家ID');
+                return;
+            }
+            
+            // 创建商品对象
+            const product = {
+                title: title,
+                description: description,
+                price: parseFloat(price),
+                categoryId: selectedCategories[0], // 主分类ID使用第一个选择的分类
+                sellerId: parseInt(sellerId),
+                status: status,
+                pic: uploadedImagePath,
+                categories: selectedCategories.map(categoryId => {
+                    return { categoryId: categoryId };
+                })
+            };
+            
+            // 发送请求
+            fetch('/api/products', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(product)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('addResult').innerHTML = '<div class="success">商品添加成功！ID: ' + data.productId + '</div>';
+                
+                // 保存商品与分类的关联关系
+                if (selectedCategories.length > 1) {
+                    saveProductCategories(data.productId, selectedCategories);
+                } else {
+                    // 刷新商品列表
+                    loadProducts();
+                }
+                
+                // 重置表单
+                document.getElementById('addTitle').value = '';
+                document.getElementById('addDescription').value = '';
+                document.getElementById('addPrice').value = '';
+                document.getElementById('addSellerId').value = '';
+                document.getElementById('addStatus').value = '草稿';
+                document.getElementById('addImage').value = '';
+                document.getElementById('addImagePreview').style.display = 'none';
+                document.getElementById('addCategorySelect').selectedIndex = -1;
+                selectedCategories = [];
+                uploadedImagePath = null;
+            })
+            .catch(error => {
+                console.error('添加商品出错:', error);
+                document.getElementById('addResult').innerHTML = '<div class="error">添加商品失败，请查看控制台错误信息</div>';
+            });
+        }
+        
+        // 保存商品与分类的关联关系
+        function saveProductCategories(productId, categoryIds) {
+            const promises = [];
+            
+            // 除了主分类外，为其他分类创建关联关系
+            for (let i = 1; i < categoryIds.length; i++) {
+                const relationData = {
+                    productId: productId,
+                    categoryId: categoryIds[i]
+                };
+                
+                promises.push(
+                    fetch('/api/products/category-relation', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(relationData)
+                    })
+                );
+            }
+            
+            // 等待所有关联关系保存完成
+            Promise.all(promises)
+                .then(() => {
+                    // 刷新商品列表
+                    loadProducts();
+                })
+                .catch(error => {
+                    console.error('保存商品分类关联关系出错:', error);
+                    alert('部分分类关联可能未保存成功');
+                    loadProducts();
+                });
+        }
+        
+        // 获取商品信息用于更新
+        function getProductForUpdate() {
+            const id = document.getElementById('updateId').value;
+            
+            if (!id) {
+                alert('请输入商品ID');
+                return;
+            }
+            
+            fetch(`/api/products/${id}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('商品不存在');
+                    }
+                    return response.json();
+                })
+                .then(product => {
+                    document.getElementById('updateTitle').value = product.title || '';
+                    document.getElementById('updateDescription').value = product.description || '';
+                    document.getElementById('updatePrice').value = product.price || '';
+                    document.getElementById('updateSellerId').value = product.sellerId || '';
+                    document.getElementById('updateStatus').value = product.status || '草稿';
+                    
+                    // 更新分类选择
+                    const categorySelect = document.getElementById('updateCategorySelect');
+                    if (product.categories && product.categories.length > 0) {
+                        // 记录当前商品的分类
+                        updateSelectedCategories = product.categories.map(cat => cat.categoryId);
+                        
+                        // 选中对应的选项
+                        for (let i = 0; i < categorySelect.options.length; i++) {
+                            const option = categorySelect.options[i];
+                            option.selected = updateSelectedCategories.includes(parseInt(option.value));
+                        }
+                    } else if (product.categoryId) {
+                        // 如果只有主分类ID
+                        updateSelectedCategories = [product.categoryId];
+                        
+                        // 选中对应的选项
+                        for (let i = 0; i < categorySelect.options.length; i++) {
+                            const option = categorySelect.options[i];
+                            option.selected = option.value == product.categoryId;
+                        }
+                    } else {
+                        // 清除选择
+                        categorySelect.selectedIndex = -1;
+                        updateSelectedCategories = [];
+                    }
+                    
+                    // 显示当前图片
+                    if (product.pic) {
+                        // 通过接口获取图片URL
+                        fetch(`/api/products/image-info?path=${encodeURIComponent(product.pic)}&t=${new Date().getTime()}`)
+                            .then(response => response.json())
+                            .then(imageData => {
+                                const currentImage = document.getElementById('currentImage');
+                                currentImage.onerror = function() {
+                                    document.getElementById('currentImagePath').textContent = `图片路径: ${product.pic} (无法加载预览)`;
+                                    console.error('无法加载图片URL:', imageData.url);
+                                };
+                                currentImage.src = imageData.url;
+                                currentImage.style.display = 'block';
+                                document.getElementById('currentImagePath').textContent = `图片路径: ${product.pic}`;
+                                updateImagePath = product.pic;
+                            })
+                            .catch(error => {
+                                console.error('获取图片信息出错:', error);
+                                document.getElementById('currentImagePath').textContent = `图片路径: ${product.pic} (无法加载预览)`;
+                                updateImagePath = product.pic;
+                            });
+                    } else {
+                        document.getElementById('currentImage').style.display = 'none';
+                        document.getElementById('currentImagePath').textContent = '无图片';
+                        updateImagePath = null;
+                    }
+                    
+                    document.getElementById('updateResult').innerHTML = '<div class="success">商品信息获取成功</div>';
+                })
+                .catch(error => {
+                    console.error('获取商品信息出错:', error);
+                    document.getElementById('updateResult').innerHTML = '<div class="error">获取商品信息失败: ' + error.message + '</div>';
+                });
+        }
+        
+        // 更新商品
+        function updateProduct() {
+            const id = document.getElementById('updateId').value;
+            const title = document.getElementById('updateTitle').value;
+            const description = document.getElementById('updateDescription').value;
+            const price = document.getElementById('updatePrice').value;
+            const sellerId = document.getElementById('updateSellerId').value;
+            const status = document.getElementById('updateStatus').value;
+            
+            if (!id || !title || !price || updateSelectedCategories.length === 0 || !sellerId) {
+                alert('请填写商品ID、标题、价格、选择至少一个分类并填写卖家ID');
+                return;
+            }
+            
+            const product = {
+                productId: parseInt(id),
+                title: title,
+                description: description,
+                price: parseFloat(price),
+                categoryId: updateSelectedCategories[0], // 主分类ID使用第一个选择的分类
+                sellerId: parseInt(sellerId),
+                status: status,
+                pic: updateImagePath,
+                categories: updateSelectedCategories.map(categoryId => {
+                    return { categoryId: categoryId };
+                })
+            };
+            
+            fetch(`/api/products/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(product)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 更新分类关联
+                updateProductCategories(id, updateSelectedCategories)
+                    .then(() => {
+                        document.getElementById('updateResult').innerHTML = '<div class="success">商品更新成功！</div>';
+                        // 刷新商品列表
+                        loadProducts();
+                    });
+            })
+            .catch(error => {
+                console.error('更新商品出错:', error);
+                document.getElementById('updateResult').innerHTML = '<div class="error">更新商品失败，请查看控制台错误信息</div>';
+            });
+        }
+        
+        // 更新商品与分类的关联关系
+        function updateProductCategories(productId, categoryIds) {
+            // 首先删除原有的关联关系
+            return fetch(`/api/products/${productId}/categories`, {
+                method: 'DELETE'
+            })
+            .then(() => {
+                const promises = [];
+                
+                // 为所有分类创建关联关系 (除了主分类，主分类已保存在商品表)
+                for (let i = 1; i < categoryIds.length; i++) {
+                    const relationData = {
+                        productId: parseInt(productId),
+                        categoryId: categoryIds[i]
+                    };
+                    
+                    promises.push(
+                        fetch('/api/products/category-relation', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(relationData)
+                        })
+                    );
+                }
+                
+                // 等待所有关联关系保存完成
+                return Promise.all(promises);
+            });
+        }
+        
+        // 删除商品
+        function deleteProduct() {
+            const id = document.getElementById('deleteId').value;
+            
+            if (!id) {
+                alert('请输入要删除的商品ID');
+                return;
+            }
+            
+            if (confirm(`确定要删除ID为 ${id} 的商品吗？`)) {
+                deleteProductById(id);
+            }
+        }
+        
+        // 通过ID删除商品
+        function deleteProductById(id) {
+            fetch(`/api/products/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result === true) {
+                    const resultElement = document.getElementById('deleteId').value === id ? 
+                        document.getElementById('deleteResult') : document.getElementById('updateResult');
+                    resultElement.innerHTML = '<div class="success">商品删除成功！</div>';
+                    
+                    // 重置删除ID
+                    if (document.getElementById('deleteId').value === id) {
+                        document.getElementById('deleteId').value = '';
+                    }
+                    
+                    // 刷新商品列表
+                    loadProducts();
+                } else {
+                    throw new Error('删除失败');
+                }
+            })
+            .catch(error => {
+                console.error('删除商品出错:', error);
+                const resultElement = document.getElementById('deleteId').value === id ? 
+                    document.getElementById('deleteResult') : document.getElementById('updateResult');
+                resultElement.innerHTML = '<div class="error">删除商品失败，请查看控制台错误信息</div>';
+            });
+        }
+        
+        // 加载分类列表
+        function loadCategories() {
+            fetch('/api/categories')
+                .then(response => response.json())
+                .then(data => {
+                    categories = data;
+                    
+                    // 填充添加商品的分类下拉框
+                    const addCategorySelect = document.getElementById('addCategorySelect');
+                    addCategorySelect.innerHTML = '';
+                    
+                    // 填充更新商品的分类下拉框
+                    const updateCategorySelect = document.getElementById('updateCategorySelect');
+                    updateCategorySelect.innerHTML = '';
+                    
+                    categories.forEach(category => {
+                        // 添加到添加商品的分类选择
+                        const addOption = document.createElement('option');
+                        addOption.value = category.categoryId;
+                        addOption.textContent = category.name;
+                        addCategorySelect.appendChild(addOption);
+                        
+                        // 添加到更新商品的分类选择
+                        const updateOption = document.createElement('option');
+                        updateOption.value = category.categoryId;
+                        updateOption.textContent = category.name;
+                        updateCategorySelect.appendChild(updateOption);
+                    });
+                })
+                .catch(error => {
+                    console.error('获取分类列表出错:', error);
+                });
+        }
+    </script>
+</body>
+</html> 
