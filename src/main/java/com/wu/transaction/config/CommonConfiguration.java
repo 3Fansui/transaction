@@ -19,10 +19,13 @@ import org.springframework.ai.model.SimpleApiKey;
 import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.openai.OpenAiEmbeddingModel;
 import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.vectorstore.SimpleVectorStore;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.redis.RedisVectorStore;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,6 +54,12 @@ public class CommonConfiguration {
     @Value("${spring.data.redis.port}")
     private int redisPort;
 
+    @Value("${spring.data.redis.username:}")
+    private String redisUsername;
+
+    @Value("${spring.data.redis.password}")
+    private String redisPassword;
+
     @Value("${spring.ai.vectorstore.redis.index:spring_ai_index}")
     private String vectorStoreIndex;
 
@@ -59,7 +68,7 @@ public class CommonConfiguration {
 
     @Bean
     public JedisPooled jedisPooled() {
-        return new JedisPooled(redisHost, redisPort);
+        return new JedisPooled(redisHost, redisPort, redisUsername, redisPassword);
     }
 
     @Bean
@@ -76,7 +85,7 @@ public class CommonConfiguration {
         return new RedisChatMemory(redisTemplate, objectMapper);
     }
 
-    @Bean
+    /*@Bean
     public ChatClient chatClient(AlibabaOpenAiChatModel model, ChatMemory chatMemory) {
         return ChatClient
                 .builder(model)
@@ -87,7 +96,7 @@ public class CommonConfiguration {
                         new MessageChatMemoryAdvisor(chatMemory)
                 )
                 .build();
-    }
+    }*/
 
     @Bean
     public AlibabaOpenAiChatModel alibabaOpenAiChatModel(OpenAiConnectionProperties commonProperties, OpenAiChatProperties chatProperties, ObjectProvider<RestClient.Builder> restClientBuilderProvider, ObjectProvider<WebClient.Builder> webClientBuilderProvider, ToolCallingManager toolCallingManager, RetryTemplate retryTemplate, ResponseErrorHandler responseErrorHandler, ObjectProvider<ObservationRegistry> observationRegistry, ObjectProvider<ChatModelObservationConvention> observationConvention) {
@@ -116,14 +125,27 @@ public class CommonConfiguration {
     public ChatClient serviceChatClient(
             AlibabaOpenAiChatModel model,
             ChatMemory chatMemory,
-            ProductFunctions courseTools) {
-        return ChatClient.builder(model)
+            ProductFunctions courseTools,
+            @Autowired(required = false) List<ToolCallbackProvider> toolCallbackProviders) {
+
+        // 创建ChatClient构建器
+        ChatClient.Builder builder = ChatClient.builder(model)
                 .defaultSystem(SECONDHAND_PLATFORM_SYSTEM)
                 .defaultAdvisors(
-                        new MessageChatMemoryAdvisor(chatMemory), // CHAT MEMORY
+                        new MessageChatMemoryAdvisor(chatMemory),
                         new SimpleLoggerAdvisor())
-                .defaultTools(courseTools)
-                .build();
+                .defaultTools(courseTools); // 添加自定义工具
+
+        // 添加MCP工具回调
+        if (toolCallbackProviders != null && !toolCallbackProviders.isEmpty()) {
+            for (ToolCallbackProvider provider : toolCallbackProviders) {
+                if (provider != null && provider.getToolCallbacks() != null) {
+                    builder.defaultTools((ToolCallback[]) provider.getToolCallbacks());
+                }
+            }
+        }
+
+        return builder.build();
     }
 
 

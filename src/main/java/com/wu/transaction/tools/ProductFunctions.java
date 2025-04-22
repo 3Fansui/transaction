@@ -3,24 +3,26 @@ package com.wu.transaction.tools;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wu.transaction.constants.ProductStatusConstants;
-import com.wu.transaction.entity.po.Category;
-import com.wu.transaction.entity.po.Product;
-import com.wu.transaction.entity.po.ProductCategoryRel;
+import com.wu.transaction.controller.CreateOrderRequest;
+import com.wu.transaction.controller.OrderItemRequest;
+import com.wu.transaction.entity.po.*;
 import com.wu.transaction.entity.query.CategoryQuery;
 import com.wu.transaction.entity.query.ProductQuery;
 import com.wu.transaction.mapper.CategoryMapper;
 import com.wu.transaction.mapper.ProductCategoryRelMapper;
 import com.wu.transaction.mapper.ProductMapper;
+import com.wu.transaction.service.IOrderItemService;
+import com.wu.transaction.service.IOrderService;
+import com.wu.transaction.service.ITransactionService;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -34,7 +36,7 @@ public class ProductFunctions {
     
     @Autowired
     private ProductCategoryRelMapper productCategoryRelMapper;
-    
+
     /**
      * 转换状态值，兼容英文和中文
      * @param status 传入的状态值
@@ -273,5 +275,132 @@ public class ProductFunctions {
         }
         
         return related;
+    }
+
+
+    /**
+     * 购买商品流程工具方法
+     */
+    @Tool(description = "购买二手商品，完成从创建订单到支付的全流程")
+    public Map<String, Object> purchaseProduct(
+            @ToolParam(description = "商品ID") Integer productId,
+            @ToolParam(description = "用户ID") Integer userId,
+            @ToolParam(description = "收货地址ID") Integer addressId
+    ) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // 1. 验证商品是否存在且可购买
+            Product product = productMapper.selectById(productId);
+            if (product == null) {
+                result.put("success", false);
+                result.put("message", "商品不存在");
+                return result;
+            }
+
+            if (!ProductStatusConstants.FOR_SALE.equals(product.getStatus())) {
+                result.put("success", false);
+                result.put("message", "商品当前不可购买，状态为：" + product.getStatus());
+                return result;
+            }
+
+            // 2. 创建订单请求
+            CreateOrderRequest orderRequest = new CreateOrderRequest();
+            orderRequest.setUserId(userId);
+            orderRequest.setAddressId(addressId);
+
+            // 创建订单项
+            OrderItemRequest itemRequest = new OrderItemRequest();
+            itemRequest.setProductId(productId);
+            itemRequest.setQuantity(1); // 默认购买数量为1
+
+            orderRequest.setItems(Collections.singletonList(itemRequest));
+
+            // 3. 调用订单创建API
+            String orderId = orderService.createOrder(orderRequest);
+
+            if (orderId == null || orderId.isEmpty()) {
+                result.put("success", false);
+                result.put("message", "订单创建失败");
+                return result;
+            }
+
+            // 4. 创建交易记录
+            BigDecimal amount = product.getPrice().negate(); // 负数表示扣减金额
+            Transaction transaction = transactionService.createTransaction(userId, orderId, amount);
+
+            if (transaction == null) {
+                result.put("success", false);
+                result.put("message", "交易记录创建失败");
+                return result;
+            }
+
+            // 5. 处理支付
+            boolean paymentSuccess = transactionService.processPayment(orderId);
+
+            if (!paymentSuccess) {
+                result.put("success", false);
+                result.put("message", "支付处理失败，可能是余额不足");
+                return result;
+            }
+
+            // 6. 返回成功信息
+            result.put("success", true);
+            result.put("message", "购买成功");
+            result.put("orderId", orderId);
+            result.put("productTitle", product.getTitle());
+            result.put("amount", amount.abs());
+            result.put("status", "PAID");
+
+            return result;
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "购买失败：" + e.getMessage());
+            return result;
+        }
+    }
+
+    /**
+     * 查询订单状态
+     */
+    @Tool(description = "查询订单状态，了解交易进展")
+    public Map<String, Object> checkOrderStatus(
+            @ToolParam(description = "订单ID") String orderId
+    ) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // 获取订单信息
+            Order order = orderService.getById(orderId);
+
+            if (order == null) {
+                result.put("success", false);
+                result.put("message", "订单不存在");
+                return result;
+            }
+
+            // 获取订单项信息
+            List<OrderItem> items = orderItemService.list(
+                    new LambdaQueryWrapper<OrderItem>()
+                            .eq(OrderItem::getOrderId, orderId)
+            );
+
+            // 查询交易状态
+            String transactionStatus = transactionService.getTransactionStatus(orderId);
+
+            result.put("success", true);
+            result.put("orderId", orderId);
+            result.put("status", order.getStatus());
+            result.put("transactionStatus", transactionStatus);
+            result.put("totalAmount", order.getTotalAmount());
+            result.put("createdAt", order.getCreatedAt());
+            result.put("itemCount", items.size());
+
+            return result;
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "查询失败：" + e.getMessage());
+            return result;
+        }
     }
 }

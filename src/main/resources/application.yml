@@ -6,7 +6,17 @@ spring:
     redis:
       host: 117.72.95.17
       port: 6379
+      password: zxc123
+      username: default
   ai:
+    mcp:
+      client:
+        enabled: true
+        type: SYNC
+        stdio:
+          servers-configuration: classpath:mcp-server.json
+        toolcallback:
+          enabled: true  # 这是关键配置
     openai:
       base-url: https://dashscope.aliyuncs.com/compatible-mode
       api-key: sk-c0cfcd0b9c5843b8b717d976f273f854  # OPENAI_API_KEY=sk-c0cfcd0b9c5843b8b717d976f273f854
@@ -22,6 +32,10 @@ spring:
           index: spring_ai_index # 向量库索引名
           initialize-schema: true # 是否初始化向量库索引结构
           prefix: "doc:" # 向量库key前缀
+      sse:
+        connections:
+          server1:
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/buy?serverTimezone=Asia/Shanghai&useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&tinyInt1isBit=false&allowPublicKeyRetrieval=true&allowMultiQueries=true&useServerPrepStmts=false
@@ -36,9 +50,9 @@ spring:
 # MinIO配置
 minio:
   endpoint: http://117.72.95.17:9005
-  accessKey: minioadmin  
+  accessKey: minioadmin
   secretKey: minioadmin
-  bucket: 
+  bucket:
     product-images: product-images  # 商品图片存储桶
     user-avatars: user-avatars      # 用户头像存储桶
 
@@ -49,7 +63,8 @@ springdoc:
 logging:
   level:
     org.springframework.ai: debug
-    com.wu.transaction: debug
+    #com.wu.transaction: debug
+    #io.modelcontextprotocol: DEBUG
 # JWT配置
 jwt:
   secret: ZCprPyacfQyXXU7NiJSJlUebCGYVXeWmJkNhDsYsQXahBWVtkBuQcMHpMeOhyA6

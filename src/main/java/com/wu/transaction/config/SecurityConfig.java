@@ -72,27 +72,8 @@ public class SecurityConfig {
             .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
             .authorizeHttpRequests()
-                // 允许所有用户访问这些端点
-                .requestMatchers("/ai/history/**").permitAll()
-                .requestMatchers("/ai").permitAll()
-                .requestMatchers("/ai/service/**").permitAll()
-                .requestMatchers("/ai/chat/**").permitAll()
-                .requestMatchers("/api/user/register", "/api/user/login").permitAll()
-                .requestMatchers("/api/products/**").permitAll()
-                .requestMatchers("/api/categories/**").permitAll()
-                .requestMatchers("/api/chat/**").permitAll()
-                .requestMatchers("/doc/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                // 需要认证才能访问的端点
-                .requestMatchers("/api/user/**").authenticated()
-                .requestMatchers("/api/address/**").authenticated()
-                .requestMatchers("/api/order/**").authenticated()
-                .requestMatchers("/api/payment/**").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/products/**").authenticated()
-                .requestMatchers(HttpMethod.PUT, "/api/products/**").authenticated()
-                .requestMatchers(HttpMethod.DELETE, "/api/products/**").authenticated()
-                // 其他所有请求需要认证
-                .anyRequest().authenticated();
+                // 临时允许所有请求通过，禁用安全框架
+                .anyRequest().permitAll();
 
         // 添加JWT过滤器
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
