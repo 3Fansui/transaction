@@ -4,7 +4,7 @@ spring:
   # Redis配置
   data:
     redis:
-      host: 117.72.95.17
+      host: 
       port: 6379
       password: zxc123
       username: default
@@ -19,7 +19,7 @@ spring:
           enabled: true  # 这是关键配置
     openai:
       base-url: https://dashscope.aliyuncs.com/compatible-mode
-      api-key: sk-c0cfcd0b9c5843b8b717d976f273f854  # OPENAI_API_KEY=sk-c0cfcd0b9c5843b8b717d976f273f854
+      api-key: sk-c0cfcd0b9c5843b8b717d976f273f854  # OPENAI_API_KEY=
       chat:
         options:
           model: qwen-max-latest
@@ -49,7 +49,7 @@ spring:
 
 # MinIO配置
 minio:
-  endpoint: http://117.72.95.17:9005
+  endpoint: 
   accessKey: minioadmin
   secretKey: minioadmin
   bucket:
