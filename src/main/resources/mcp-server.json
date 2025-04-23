@@ -6,6 +6,29 @@
       "env": {
         "AMAP_MAPS_API_KEY": "ca4f0f3557469f42b0fbc0de6d8ccc5e"
       }
+    },
+    "fileSystem": {
+      "command": "E:\\nodejs\\npx.cmd",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "E:\\javake",
+        "E:\\test"
+      ]
+    },
+    "playwright": {
+      "command": "E:\\nodejs\\npx.cmd",
+      "args": [
+        "-y",
+        "@executeautomation/playwright-mcp-server"
+      ]
+    },
+    "firecrawl-mcp": {
+      "command": "E:\\nodejs\\npx.cmd",
+      "args": ["-y", "firecrawl-mcp"],
+      "env": {
+        "FIRECRAWL_API_KEY": "fc-7d39a9f9fb244e748edf4bf48087b302"
+      }
     }
   }
 }
