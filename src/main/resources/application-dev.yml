@@ -1,0 +1,74 @@
+spring:
+  application:
+    name: transaction
+  # Redis配置
+  data:
+    redis:
+      host: <REDIS_HOST> # 请填写Redis的主机地址
+      port: 6379
+      password: <REDIS_PASSWORD> # 请填写Redis的密码
+      username: <REDIS_USERNAME> # 请填写Redis的用户名
+  ai:
+    mcp:
+      client:
+        enabled: true
+        type: SYNC
+        stdio:
+          servers-configuration: classpath:mcp-server.json
+        toolcallback:
+          enabled: true  # 这是关键配置
+    openai:
+      base-url: https://dashscope.aliyuncs.com/compatible-mode
+      api-key: <OPENAI_API_KEY> # 请填写通义千问的API密钥
+      chat:
+        options:
+          model: qwen-max-latest
+      embedding:
+        options:
+          model: text-embedding-v3
+          dimensions: 1024
+      vectorstore:
+        redis:
+          index: spring_ai_index # 向量库索引名
+          initialize-schema: true # 是否初始化向量库索引结构
+          prefix: "doc:" # 向量库key前缀
+      sse:
+        connections:
+          server1:
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: <MYSQL_URL> # 请填写MySQL的数据库连接URL
+    username: <MYSQL_USERNAME> # 请填写MySQL的用户名
+    password: <MYSQL_PASSWORD> # 请填写MySQL的密码
+  # 配置上传文件大小限制
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+# MinIO配置
+minio:
+  endpoint: <MINIO_ENDPOINT> # 请填写MinIO的端点地址
+  accessKey: <MINIO_ACCESS_KEY> # 请填写MinIO的访问密钥
+  secretKey: <MINIO_SECRET_KEY> # 请填写MinIO的密钥
+  bucket:
+    product-images: product-images  # 商品图片存储桶
+    user-avatars: user-avatars      # 用户头像存储桶
+
+springdoc:
+  swagger-ui:
+    path: /doc
+
+logging:
+  level:
+    org.springframework.ai: debug
+    io.modelcontextprotocol: info
+#    com.wu.transaction: info
+#    io.modelcontextprotocol: warn
+# JWT配置
+jwt:
+  secret: <JWT_SECRET> # 请填写JWT的密钥
+  expiration: 86400000  # 24小时
+  header: Authorization
+  tokenPrefix: "Bearer "

@@ -125,6 +125,13 @@
             <version>1.0.0-M6</version>
         </dependency>
 
+        <!-- 添加MCP服务端依赖 -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-mcp-server-webflux-spring-boot-starter</artifactId>
+            <version>1.0.0-M6</version>
+        </dependency>
+
     </dependencies>
 
     <dependencyManagement>
