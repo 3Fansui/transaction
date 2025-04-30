@@ -27,7 +27,7 @@
       "command": "E:\\nodejs\\npx.cmd",
       "args": ["-y", "firecrawl-mcp"],
       "env": {
-        "FIRECRAWL_API_KEY": "fc-7d39a9f9fb244e748edf4bf48087b302"
+        "FIRECRAWL_API_KEY": ""
       }
     }
   }
